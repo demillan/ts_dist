@@ -7,7 +7,7 @@ library(fields)
 
 # Load test data
 sample <- fread(
-  file = "AReM/cycling/dataset1.csv",
+  file = "AReM/cycling/dataset3.csv",
   col.names = c(
     "time", "avg_rss12", "var_rss12",
     "avg_rss13", "var_rss13", "avg_rss23", "var_rss23"
@@ -19,7 +19,7 @@ ggplot(sample) +
   geom_line(aes(x = time, y = avg_rss13))
 
 mirror <- fread(
-  file = "AReM/cycling/dataset2.csv",
+  file = "AReM/cycling/dataset4.csv",
   col.names = c(
     "time", "avg_rss12", "var_rss12",
     "avg_rss13", "var_rss13", "avg_rss23", "var_rss23"
@@ -45,15 +45,21 @@ set_index <- function(dt) {
 set_index(ts)
 set_index(tm)
 
-ts_m <- NULL
-for (i in 1:(nrow(ts) - window_size + 1)) {
-  ts_m <- rbind(ts_m, t(ts[i:(i + window_size - 1), avg_rss13]))
-}
+#ts_m <- NULL
+#for (i in 1:(nrow(ts) - window_size + 1)) {
+  #ts_m <- rbind(ts_m, t(ts[i:(i + window_size - 1), avg_rss13]))
+#}
 
-tm_m <- NULL
-for (i in 1:(nrow(tm) - window_size + 1)) {
-  tm_m <- rbind(tm_m, t(tm[i:(i + window_size - 1), avg_rss13]))
-}
+ts_m <- t(sapply(1:(nrow(ts) - window_size + 1), function(i) t(ts[i:(i + window_size - 1), avg_rss13])))
+
+#tm_m <- NULL
+#for (i in 1:(nrow(tm) - window_size + 1)) {
+  #tm_m <- rbind(tm_m, t(tm[i:(i + window_size - 1), avg_rss13]))
+#}
+
+#tm <- data.table(avg_rss13 = runif(1e6))
+#set_index(tm)
+tm_m <- t(sapply(1:(nrow(tm) - window_size + 1), function(i) t(tm[i:(i + window_size - 1), avg_rss13])))
 
 m <- rbind(ts_m, tm_m)
 m <- as.matrix(scale(m))
@@ -62,14 +68,6 @@ d <- as.matrix(dist(m))
 diag(d) <- NA
 d[lower.tri(d)] <- NA
 d[1:10, 1:10]
-
-heatmap(
-  d,
-  col = viridis(10),
-  Rowv = NA, Colv = NA, revC = TRUE
-  )
-image(d, col = viridis(10))
-title(main = "Distance matrix", font.main = 4)
 
 x <- 1:dim(d)[1]
 y <- 1:dim(d)[2]
@@ -83,7 +81,10 @@ axis(2, at = seq(1, dim(d)[2], by = 50), tick = TRUE)
 box()
 title(main = "Distance matrix", font.main = 4)
 
-which(d < 1, arr.ind = TRUE)
+di <- as.data.table(which(d < 1, arr.ind = TRUE))
+di[col > row + nrow(tm) - window_size + 1]
 
-plot(m[210,], type = "l")
-lines(m[784, ], col = "red")
+summary(as.vector(d))
+
+plot(m[898,], type = "l")
+lines(m[324,], col = "red")
