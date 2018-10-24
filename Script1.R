@@ -9,8 +9,10 @@ library(fields)
 sample <- fread(
   file = "AReM/cycling/dataset3.csv",
   col.names = c(
-    "time", "avg_rss12", "var_rss12",
-    "avg_rss13", "var_rss13", "avg_rss23", "var_rss23"
+    "time",
+    "avg_rss12", "var_rss12",
+    "avg_rss13", "var_rss13",
+    "avg_rss23", "var_rss23"
     ),
   skip = 5
   )
@@ -19,10 +21,12 @@ ggplot(sample) +
   geom_line(aes(x = time, y = avg_rss13))
 
 mirror <- fread(
-  file = "AReM/cycling/dataset4.csv",
+  file = "AReM/sitting/dataset4.csv",
   col.names = c(
-    "time", "avg_rss12", "var_rss12",
-    "avg_rss13", "var_rss13", "avg_rss23", "var_rss23"
+    "time",
+    "avg_rss12", "var_rss12",
+    "avg_rss13", "var_rss13",
+    "avg_rss23", "var_rss23"
     ),
   skip = 5
   )
@@ -30,7 +34,7 @@ mirror <- fread(
 ggplot(mirror) +
   geom_line(aes(x = time, y = avg_rss13), color = "blue")
 
-window_size <- 10
+window_size <- 30
 
 ts <- sample[, .(avg_rss13)]
 tm <- mirror[, .(avg_rss13)]
@@ -45,21 +49,21 @@ set_index <- function(dt) {
 set_index(ts)
 set_index(tm)
 
-#ts_m <- NULL
-#for (i in 1:(nrow(ts) - window_size + 1)) {
-  #ts_m <- rbind(ts_m, t(ts[i:(i + window_size - 1), avg_rss13]))
-#}
-
-ts_m <- t(sapply(1:(nrow(ts) - window_size + 1), function(i) t(ts[i:(i + window_size - 1), avg_rss13])))
-
-#tm_m <- NULL
-#for (i in 1:(nrow(tm) - window_size + 1)) {
-  #tm_m <- rbind(tm_m, t(tm[i:(i + window_size - 1), avg_rss13]))
-#}
+ts_m <- t(
+          sapply(
+            1:(nrow(ts) - window_size + 1),
+            function(i) t(ts[i:(i + window_size - 1), avg_rss13])
+            )
+            )
 
 #tm <- data.table(avg_rss13 = runif(1e6))
 #set_index(tm)
-tm_m <- t(sapply(1:(nrow(tm) - window_size + 1), function(i) t(tm[i:(i + window_size - 1), avg_rss13])))
+tm_m <- t(
+          sapply(
+          1:(nrow(tm) - window_size + 1),
+          function(i) t(tm[i:(i + window_size - 1), avg_rss13])
+          )
+          )
 
 m <- rbind(ts_m, tm_m)
 m <- as.matrix(scale(m))
@@ -81,10 +85,10 @@ axis(2, at = seq(1, dim(d)[2], by = 50), tick = TRUE)
 box()
 title(main = "Distance matrix", font.main = 4)
 
-di <- as.data.table(which(d < 1, arr.ind = TRUE))
+di <- as.data.table(which(d < 4, arr.ind = TRUE))
 di[col > row + nrow(tm) - window_size + 1]
 
 summary(as.vector(d))
 
-plot(m[898,], type = "l")
-lines(m[324,], col = "red")
+plot(m[222, ], type = "l")
+lines(m[686, ], col = "red")
